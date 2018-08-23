@@ -2,21 +2,25 @@
   "name": "qlik-sse",
   "version": "0.1.0",
   "description": "Qlik Sense Server Side Extension in nodejs",
-  "main": "lib/index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "license": "MIT",
+  "author": "miralemd",
   "keywords": [
     "qlik",
     "sse",
     "grpc"
   ],
-  "author": "miralemd",
-  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/miralemd/qlik-sse.git"
+  },
   "files": [
     "lib",
     "assets"
   ],
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "devDependencies": {
     "eslint": "^5.4.0",
     "eslint-config-airbnb-base": "^13.1.0",
