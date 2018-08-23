@@ -1,7 +1,7 @@
 {
   "name": "qlik-sse",
   "version": "0.1.0",
-  "description": "",
+  "description": "Qlik Sense Server Side Extension in nodejs",
   "main": "lib/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
