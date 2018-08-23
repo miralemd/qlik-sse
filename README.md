@@ -37,3 +37,23 @@ node foo.js
 You have now successfully created a Server Side Extension that can be used from within Qlik Sense or QlikView.
 
 Take a look at some of the [examples](./examples) on how to add functionality to the SSE.
+
+## TODO
+
+- Documentation
+  - API
+  - Explain function types `SCALAR`, `AGGREGATION` and `TENSOR`
+- Examples
+  - How to use tensorflow with qix data
+  - Real use cases
+    - linear regression
+    - k-means
+    - ...
+  - Full Qlik example
+    - configuring Qlik Engine to use SSEPlugin
+    - dockerized environment
+    - loading data
+    - expression calls
+- Features
+  - Script evaluation
+  - Error handling
