@@ -42,6 +42,7 @@ const server = q.server({
 - `config` <[Object]>
   - `functionType` <[FunctionType]> Type of function
   - `returnType` <[DataType]> Type of data this function is expected to return
+  - `async` <[boolean]> True if this function is expected to manage request.end()
   - `params` <[Array]<[Object]>>
     - `name` <[string]>
     - `dataType`: <[DataType]>
