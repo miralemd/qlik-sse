@@ -18,7 +18,7 @@ Check out [Server Side Extension](https://github.com/qlik-oss/server-side-extens
 
 Before continuing, make sure you:
 
-- have Node.js >= v0.8.0 installed
+- have Node.js >= v8.0.0 installed
 - can configure your Qlik installation (or dockerized Qlik Engine)
 
 ### Usage
@@ -74,7 +74,7 @@ Take a look at some of the [examples](./examples) on how to add functionality to
 - Documentation
   - [x] API
   - [x] Explain function types `SCALAR`, `AGGREGATION` and `TENSOR`
-  - [ ] Table load
+  - [x] Table load
 - Examples
   - How to use tensorflow with qix data
   - Real use cases

@@ -45,6 +45,7 @@ const server = q.server({
   - `params` <[Array]<[Object]>>
     - `name` <[string]>
     - `dataType`: <[DataType]>
+  - `tableDescription` <[TableDescription]> Description of the returned table when function is called from load script using the `extension` clause.
 
 Register a function which can be called from an expression.
 

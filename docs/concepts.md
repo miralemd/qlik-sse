@@ -20,6 +20,7 @@ Snack|Cookies|18
 Dairy|Cheese|12
 
 ```basic
+Prods:
 LOAD * Inline [
 Product group,Product,Sales
 Snack, Chips, 19
@@ -176,3 +177,82 @@ sse.ScriptEvalExStr('N', 'return args[0] > 20 ? "green" : "red"', sum(Sales));
 - For _Product group_ `'Dairy'`: `[12]`
 
 In this example, we use `*Ex` because we want to get the numeric value of `sum(Sales)` by specifying `N` as the first parameter. The values inside `args` will therefore be the `numData` part of the `dual`. We use `*Str` because we want a `string` as output.
+
+## Table load
+
+[Intro](https://github.com/qlik-oss/server-side-extension/blob/master/docs/writing_a_plugin.md#tabledescription)
+
+It's possible to load entire tables and augment script data through a table load defined in the script.
+
+**Example**
+
+Let's first define a function that has a table description and returns additional columns of data:
+
+```js
+const NUTRITIONAL_FACTS = {
+  // protein, fat, carbs (in grams)
+  Cheese: [20, 25, 4],
+  Popcorn: [12, 4, 78],
+  Chips: [7, 35, 53],
+  Cookies: [6, 24, 65],
+};
+
+function nutrition(request) {
+  request.on('data', (bundle) => {
+    const rows = [];
+    bundle.rows.forEach((row) => {
+      const c = NUTRITIONAL_FACTS[row.duals[0].strData];
+      rows.push({
+        duals: [
+          { strData: row.duals[0].strData }, // first column - product
+          { numData: c ? c[0] : '-' }, // second column - protein
+          { numData: c ? c[1] : '-' }, // third column - fat
+          { numData: c ? c[2] : '-' }, // fourth column - carbs
+        ],
+      });
+    });
+    request.write({ rows });
+  });
+}
+
+s.addFunction(nutrition, {
+  functionType: q.sse.FunctionType.TENSOR,
+  // returnType: q.sse.DataType.NUMERIC, // returnType doesn't matter when called with the 'extension' clause
+  params: [{
+    name: 'does not matter',
+    dataType: q.sse.DataType.STRING,
+  }],
+  tableDescription: { // describe the table this function is expected to return
+    fields: [
+      { dataType: q.sse.DataType.STRING, name: 'Product'},
+      { dataType: q.sse.DataType.NUMERIC, name: 'protein'},
+      { dataType: q.sse.DataType.NUMERIC, name: 'fat'},
+      { dataType: q.sse.DataType.NUMERIC, name: 'carbs'}
+    ],
+  },
+});
+```
+
+In the load script we can then load that additional data using the `Load ... Extension` syntax:
+
+```basic
+Prods:
+LOAD * Inline [
+Product group,Product,Sales
+Snack, Chips, 19
+Snack, Popcorn, 11
+Snack, Cookies, 18
+Dairy, Cheese, 12
+
+Load * Extension sse.nutrition( Prods{Product} );
+];
+```
+
+which will result in the following table being added to the data model:
+
+Product | fat | protein | carbs
+---|---|---|---
+Chips|20|25|4
+Popcorn|12|4|78
+Cookies|7|35|53
+Cheese|6|24|65
