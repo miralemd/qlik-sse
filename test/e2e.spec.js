@@ -15,6 +15,23 @@ function duplicate(request) {
   });
 }
 
+async function later(request) {
+  request.on('data', (bundle) => {
+    const rows = [];
+    setTimeout(() => {
+      bundle.rows.forEach((row) => {
+        row.duals.forEach((dual) => {
+          rows.push({
+            duals: [{ strData: dual.strData.toUpperCase() }],
+          });
+        });
+      });
+      request.write({ rows });
+      request.end();
+    }, 200);
+  });
+}
+
 describe('e2e', () => {
   let s;
   let c;
@@ -32,6 +49,15 @@ describe('e2e', () => {
       params: [{
         name: 'first',
         dataType: sse.DataType.NUMERIC,
+      }],
+    });
+
+    s.addFunction(later, { // eslint-disable-line
+      functionType: sse.FunctionType.SCALAR,
+      returnType: sse.DataType.STRING,
+      params: [{
+        name: 'first',
+        dataType: sse.DataType.STRING,
       }],
     });
 
@@ -59,6 +85,12 @@ describe('e2e', () => {
             returnType: 'NUMERIC',
             params: [{ dataType: 'NUMERIC', name: 'first' }],
             functionId: 1001,
+          }, {
+            name: 'later',
+            functionType: 'SCALAR',
+            returnType: 'STRING',
+            params: [{ dataType: 'STRING', name: 'first' }],
+            functionId: 1002,
           }],
           pluginIdentifier: 'xxx',
           pluginVersion: '0.1.0',
@@ -87,11 +119,15 @@ describe('e2e', () => {
 
       const e = c.executeFunction(metadata);
 
-      e.on('data', ({ rows }) => {
-        expect(rows).to.eql([{ duals: [{ numData: 14, strData: '' }] }]);
-      });
+      let data = {};
+      const assert = () => {
+        expect(data.rows).to.eql([{ duals: [{ numData: 14, strData: '' }] }]);
+        done();
+      };
 
-      e.on('end', done);
+      e.on('data', (d) => { data = d; });
+
+      e.on('end', assert);
 
       e.write(b);
       e.end();
@@ -113,6 +149,38 @@ describe('e2e', () => {
         expect(err.details).to.equal('The method is not implemented.');
         done();
       });
+      e.end();
+    });
+
+    it('should support async function', (done) => {
+      const fmh = new sse.FunctionRequestHeader({
+        functionId: 1002,
+      }).encodeNB();
+
+      const metadata = new grpc.Metadata();
+      metadata.set('qlik-functionrequestheader-bin', fmh);
+
+      const b = new sse.BundledRows({
+        rows: [{
+          duals: [{
+            strData: 'cap me',
+          }],
+        }],
+      });
+
+      const e = c.executeFunction(metadata);
+
+      let data = {};
+      const assert = () => {
+        expect(data.rows).to.eql([{ duals: [{ numData: 0, strData: 'CAP ME' }] }]);
+        done();
+      };
+
+      e.on('data', (d) => { data = d; });
+
+      e.on('end', assert);
+
+      e.write(b);
       e.end();
     });
   });
