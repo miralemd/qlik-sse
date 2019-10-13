@@ -32,6 +32,10 @@ async function later(request) {
   });
 }
 
+function bad() {
+  throw new Error('blabla');
+}
+
 describe('e2e', () => {
   let s;
   let c;
@@ -53,7 +57,7 @@ describe('e2e', () => {
       logLevel: 0,
     });
 
-    s.addFunction(duplicate, { // eslint-disable-line
+    s.addFunction(duplicate, {
       functionType: sse.FunctionType.SCALAR,
       returnType: sse.DataType.NUMERIC,
       params: [{
@@ -62,13 +66,19 @@ describe('e2e', () => {
       }],
     });
 
-    s.addFunction(later, { // eslint-disable-line
+    s.addFunction(later, {
       functionType: sse.FunctionType.SCALAR,
       returnType: sse.DataType.STRING,
       params: [{
         name: 'first',
         dataType: sse.DataType.STRING,
       }],
+    });
+
+    s.addFunction(bad, {
+      functionType: sse.FunctionType.SCALAR,
+      returnType: sse.DataType.STRING,
+      params: [],
     });
 
     s.start({
@@ -101,6 +111,12 @@ describe('e2e', () => {
             returnType: 'STRING',
             params: [{ dataType: 'STRING', name: 'first' }],
             functionId: 1002,
+          }, {
+            name: 'bad',
+            functionType: 'SCALAR',
+            returnType: 'STRING',
+            params: [],
+            functionId: 1003,
           }],
           pluginIdentifier: 'xxx',
           pluginVersion: '0.1.0',
@@ -111,6 +127,44 @@ describe('e2e', () => {
   });
 
   describe('executeFunction', () => {
+    it('should emit UMIMPLEMENTED error when function is not found', (done) => {
+      const fmh = new sse.FunctionRequestHeader({
+        functionId: 99,
+      }).encodeNB();
+
+      const metadata = new grpc.Metadata();
+      metadata.set('qlik-functionrequestheader-bin', fmh);
+
+      const e = c.executeFunction(metadata);
+
+      e.on('data', () => {});
+      e.on('error', (err) => {
+        expect(err.code).to.equal(grpc.status.UNIMPLEMENTED);
+        expect(err.details).to.equal('The method is not implemented.');
+        done();
+      });
+      e.end();
+    });
+
+    it('should emit UNKNOWN error when function throws error', (done) => {
+      const fmh = new sse.FunctionRequestHeader({
+        functionId: 1003,
+      }).encodeNB();
+
+      const metadata = new grpc.Metadata();
+      metadata.set('qlik-functionrequestheader-bin', fmh);
+
+      const e = c.executeFunction(metadata);
+
+      e.on('data', () => {});
+      e.on('error', (err) => {
+        expect(err.code).to.equal(grpc.status.UNKNOWN);
+        expect(err.details).to.equal('blabla');
+        done();
+      });
+      e.end();
+    });
+
     it('should duplicate numbers', (done) => {
       const fmh = new sse.FunctionRequestHeader({
         functionId: 1001,
@@ -140,25 +194,6 @@ describe('e2e', () => {
       e.on('end', assert);
 
       e.write(b);
-      e.end();
-    });
-
-    it('should emit UMIMPLEMENTED error when method is not found', (done) => {
-      const fmh = new sse.FunctionRequestHeader({
-        functionId: 99,
-      }).encodeNB();
-
-      const metadata = new grpc.Metadata();
-      metadata.set('qlik-functionrequestheader-bin', fmh);
-
-      const e = c.executeFunction(metadata);
-
-      e.on('data', () => {});
-      e.on('error', (err) => {
-        expect(err.code).to.equal(grpc.status.UNIMPLEMENTED);
-        expect(err.details).to.equal('The method is not implemented.');
-        done();
-      });
       e.end();
     });
 
