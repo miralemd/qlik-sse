@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "ml-kmeans": "4.2.1",
+    "qlik-sse": "0.3.0"
+  }
+}

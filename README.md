@@ -76,16 +76,16 @@ Take a look at some of the [examples](./examples) on how to add functionality to
   - [x] Explain function types `SCALAR`, `AGGREGATION` and `TENSOR`
   - [x] Table load
 - Examples
-  - How to use tensorflow with qix data
+  - [ ] How to use tensorflow with qix data
   - Real use cases
-    - linear regression
-    - k-means
+    - [ ] linear regression
+    - [x] k-means
     - ...
   - Full Qlik example
-    - configuring Qlik Engine to use SSEPlugin
-    - dockerized environment
-    - loading data
-    - expression calls
+    - [x] configuring Qlik Engine to use SSEPlugin
+    - [x] dockerized environment
+    - [ ] loading data
+    - [ ] expression calls
 - Features
   - [x] Script evaluation
   - Error handling
